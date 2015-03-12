@@ -1,0 +1,81 @@
+{{response.files.append(URL(r=request,c='static',f='js/custom_forms.js'))}}
+{{extend 'layout.html'}}
+{{import datetime}}
+{{import components}}
+{{from string import replace}}
+
+{{def artifact_situation(art, pop):}}
+    {{ if not pop: }}
+        {{=SPAN(I('',_class="icon icon-warning-sign icon-white") + T('Required'), _class="label label-warning")
+                    if art.required and not art.submitted_artifact else
+                SPAN(I('',_class="icon icon-pencil icon-white") + T('Optional'), _class="label")}}
+    {{else:}}
+        {{=SPAN(I('',_class="icon icon-ok icon-white") + T('Submitted'), _class="label label-success")}}
+    {{pass}}
+{{return}}
+
+<h2>{{=T(' '.join(x.capitalize() for x in request.function.split('_')))}}</h2>
+
+<h3>{{=report.document_type.name}}<small>&nbsp;&nbsp;{{=(T('Closed at') + ' ' + str(report.submission.submission_date))}}</small></h3>
+<h4>
+    {{=(report.submission.enrollment.student.first_name + " " + report.submission.enrollment.student.last_name) if report.submission.enrollment.student.first_name else report.submission.enrollment.student.username}} <span class="label label-info"><i class="icon icon-user icon-white"></i>{{=T('Author')}}</span>
+</h4>
+<label for="description">{{=T('Description')}}</label>
+<pre id="description">{{=report.document_type.description}}</pre>
+
+<table class="table table-hover">
+    <caption>{{=T('Submit Artifacts')}}:</caption>
+    <theader>
+        <th></th>
+        <th>{{=T('Artifact')}}</th>
+        <th>{{=T('Content Recommendation')}}</th>
+        <th>{{=T('Situation')}}</th>
+    </theader>
+    <tbody class="">
+    {{for art in report.artifacts:}}
+        {{sub = [s for s in art.submitted_artifact]}}
+        {{if art.multiple or len(sub)==0: sub.append(None)}}
+        {{for i,s in enumerate(sub):}}
+        {{if s: filename, file = db.submitted_artifact.item_file.retrieve(s.item_file)}}
+        <tr>
+             <td><i class="icon icon-file"></i></td>
+             <td>{{=art.name}} {{='#'+str(i+1) if art.multiple else ''}}</td>
+             <td>
+                 {{if s:}}<i class="icon icon-download"></i>{{=A(filename, _href=URL('default', 'download', args=[s.item_file]))}}
+                 {{else:}}{{=art.recommended_content}}{{pass}}
+             </td>
+             <td>{{artifact_situation(art, s)}}</td>
+        </tr>
+        {{pass}}
+    {{pass}}
+    </tbody>
+</table>
+{{if report.submission.enrollment.student == auth.user.id and report.submission.status < current.status["submitted"]:}}
+    <center>
+        {{=A(I('', _class="icon icon-pencil") + ' ' + T("Edit Submission"), _href=URL('user', 'overview'), _class='btn btn-info')}}
+    </center>
+{{pass}}
+{{if report.submission.enrollment.advisor == auth.user.id and report.submission.status == current.status["submitted"]:}}
+    {{include 'report/view.approve.html'}}
+{{pass}}
+{{if report.submission.status == current.status["accepted"] and current.admin:}}
+    {{include 'report/view.assign.html'}}
+{{pass}}
+{{if report.submission.status == current.status["assigned"] and report.submission.reviewer == auth.user.id:}}
+    {{include 'report/view.evaluate.html'}}
+{{pass}}
+{{if report.submission.status == current.status["evaluated"] and current.admin:}}
+    {{include 'report/view.evaluate.html'}}
+{{pass}}
+{{if report.submission.status in [current.status["approved"],current.status["reproved"]] and (current.admin or (report.check_role() in ["Student","Advisor"])):}}
+    {{include 'report/view.evaluation.html'}}
+{{pass}}
+
+<center>
+    {{=A(I('', _class="icon icon-th-list") + ' ' + T("Return to List"), _href=session.return_to, _class='btn btn-info') if session.return_to else ''}}
+</center>
+<hr/>
+{{=LOAD('report', 'comments.load', ajax=True, ajax_trap=True, user_signature=True, args=[report.submission.id])}}
+</div>
+
+{{#=BEAUTIFY(response._vars)}}

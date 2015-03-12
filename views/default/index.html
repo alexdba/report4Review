@@ -1,0 +1,42 @@
+{{left_sidebar_enabled,right_sidebar_enabled=False,True}}
+{{extend 'layout.html'}}
+
+<div class="hero-unit">
+    <h3>{{=T('Online Report Submission and Review')}}</h3>
+    <p>{{=T('Instituto de Química de São Carlos - IQSC - USP')}}</p>
+        <div class="alert alert-warning">
+            <strong>{{=T('Attention')}}!</strong>
+            <br/>
+            {{=T('This platform requires an e-mail address from the following domains')}}:
+            <ul>
+                <li>@iqsc.usp.br</li>
+                <li>@usp.br</li>
+            </ul>
+        </div>
+        {{=T('You should login with your password from your e-mail account')}}
+        <hr/>
+        {{if not auth.user: }}
+            <a class="btn btn-primary btn-large" href="{{=URL('user','overview')}}">
+            {{=T("Sign In To Use")}}
+            </a>
+        {{else:}}
+            <a class="btn btn-primary btn-large" href="{{=URL('user','overview')}}">
+            {{=T("User Overview")}}
+            </a>
+        {{pass}}
+    </p>
+</div>
+
+{{block right_sidebar}}
+<h6>{{=T("Useful Sites")}}:</h6>
+<ul>
+  <!--li>{{=A(T("Online examples"), _href=URL('examples','default','index'))}}</li-->
+  <li><a href="http://sti.iqsc.usp.br">sti.iqsc.usp.br</a></li>
+  <li><a href="http://sistemas.usp.br">sistemas.usp.br</a></li>
+  <li><a href="http://spgr.iqsc.usp.br">spgr.iqsc.usp.br</a></li>
+  <li><a href="http://www.iqsc.usp.br">www.iqsc.usp.br</a></li>
+</ul>
+{{end}}
+
+
+{{#=BEAUTIFY(response._vars)}}

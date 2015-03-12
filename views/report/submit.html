@@ -1,0 +1,116 @@
+{{extend 'layout.html'}}
+{{import datetime}}
+{{import components}}
+
+{{modal_count=0}}
+{{def modal_artifact(art, report):}}
+    {{global modal_count}}
+    {{modal_count+=1}}
+
+    {{ if not art.submitted_artifact: }}
+        {{=(I('', _class="icon icon-warning-sign") + T('Required')) if art.required
+                 else (I('', _class="icon icon-ban-circle") + T('Optional'))}}
+    {{else:}}
+        <div id="toggle_btn"><a class="btn btn-success btn-mini" data-target="#modal-{{=modal_count}}" data-toggle="modal"><i class="icon-ok icon-white"></i>{{=T('Submitted')}}</a>
+        </div>
+        <div id="modal-{{=modal_count}}" class="modal hide fade">
+            <div class="modal-header"><button type="button" class="close" data-dismiss="modal">&times;</button>&nbsp;</div>
+            <div class="modal-body">{{=LOAD('report', 'delete_submitted.load', ajax=False, ajax_trap=True, user_signature=True, args=[report.submission.id, art.id])}}</div>
+            <div class="modal-footer">&nbsp;</div>
+        </div>
+    {{pass}}
+{{return}}
+
+{{def artifact_situation(art, pop):}}
+    {{ if not pop: }}
+        {{=SPAN(I('',_class="icon icon-warning-sign icon-white") + T('Required'), _class="label label-warning")
+                    if art.required and not art.submitted_artifact else
+                SPAN(I('',_class="icon icon-pencil icon-white") + T('Optional'), _class="label")}}
+    {{else:}}
+        {{=SPAN(I('',_class="icon icon-ok icon-white") + T('Submitted'), _class="label label-success")}}
+    {{pass}}
+{{return}}
+
+<h2>{{=T(' '.join(x.capitalize() for x in request.function.split('_')))}}</h2>
+
+<h3>{{=report.document_type.name}}<small>&nbsp;&nbsp;{{=(T('Closed at') + ' ' + str(report.submission.submission_date)) if closed else ''}}</small></h3>
+<label for="description">{{=T('Description')}}</label>
+<pre id="description">{{=report.document_type.description}}</pre>
+
+{{if not submission: }}
+    <h4>{{=T('Required Items')}}</h4>
+    <ul>
+    {{for art in report.document_type.artifact.select():}}
+        <li>{{=art.name}} - {{=T('Required') if art.required else T('Optional')}}</li>
+    {{pass}}
+    </ul>
+
+    <center>
+        {{=A(I('', _class="icon icon-check") + ' ' + T("Start Submission"), _href=URL(args=request.args, vars={'open':response.session_id}), _class='btn btn-success')}}
+        {{=A(I('', _class="icon icon-th-list") + ' ' + T("Return to List"), _href=URL('user','reports', args=[]), _class='btn btn-info')}}
+    </center>
+
+{{else:}}
+<table class="table table-hover">
+    <caption>{{=T('Submit Artifacts')}}:</caption>
+    <theader>
+        <th></th>
+        <th>{{=T('Artifact')}}</th>
+        <th>{{=T('Content Recommendation')}}</th>
+        <th>{{=T('Situation')}}</th>
+        <th  style="text-align: center">{{=T('Action')}}</th>
+    </theader>
+    <tbody class="">
+    {{for art in report.artifacts:}}
+        {{sub = [s for s in art.submitted_artifact]}}
+        {{if art.multiple or len(sub)==0: sub.append(None)}}
+        {{for i,s in enumerate(sub):}}
+        {{if s: filename, file = db.submitted_artifact.item_file.retrieve(s.item_file)}}
+        <tr>
+             <td><i class="icon icon-file"></i></td>
+             <td>{{=art.name}} {{='#'+str(i+1) if art.multiple else ''}}</td>
+             <td>
+                 {{if s:}}<i class="icon icon-download"></i>{{=A(filename, _href=URL('default', 'download', args=[s.item_file]))}}
+                 {{else:}}{{=art.recommended_content}}{{pass}}
+             </td>
+             <td>{{artifact_situation(art, s)}}</td>
+             <td style="text-align: center">
+                 {{if closed: }}
+                     {{=I('', _class="icon icon-ban-circle")}}
+                 {{elif not s:}}
+                     {{=A(I('', _class="icon icon-share") + ' ' + T("Add"), _href=URL('report','submit_artifact', args=[report.submission.id, art.id]), _class='btn btn-mini')}}
+                 {{else:}}
+                    <div id="toggle_btn">
+                         <a class="btn btn-danger btn-mini" onclick="
+                            javascript:confirm('{{=T('Are you sure?')}}') && $.post('{{=URL('delete_artifact')}}', {artifact_id:{{=s.id}}},
+                                                                     function (data){
+                                                                         data=$.parseJSON(data);
+                                                                         console.log(data);
+                                                                         if (data.status == 'success')
+                                                                             document.location = '{{=URL(args=request.args)}}';
+                                                                         else
+                                                                             alert('{{=T('A failure occurred')}}');
+                                                                     })">
+                             <i class="icon-trash icon-white"></i> {{=T('Del')}}</a>
+                    </div>
+                 {{pass}}
+             </td>
+        </tr>
+        {{pass}}
+    {{pass}}
+    </tbody>
+</table>
+{{if missing:}}
+<div class="alert alert-danger">{{=T('You cannot finish your submission while required artifacts are missing')}}</div>
+{{pass}}
+<center>
+    {{=A(I('', _class="icon icon-check") + ' ' + T("Close Submission"), _href=URL(args=request.args, vars={'close':response.session_id}), _class='btn btn-primary') if not closed else ''}}
+    {{=A(I('', _class="icon icon-th-list") + ' ' + T("Return to List"), _href=URL('user','reports', args=[]), _class='btn btn-info')}}
+</center>
+<hr/>
+{{=LOAD('report', 'comments.load', ajax=True, ajax_trap=True, user_signature=True, args=[report.submission.id])}}
+</div>
+
+
+{{pass}}
+{{#=BEAUTIFY(response._vars)}}

@@ -1,0 +1,65 @@
+{{evaluated = report.submission.status == current.status['evaluated']}}
+<center>
+    <div class="alert alert-block" style="width:80%; margin:auto">
+        <button type="button" class="close" data-dismiss="alert">&times;</button>
+        <strong>{{=T('Warning')}}</strong>: {{=T('You need to evaluate this submission') if not evaluated else T('You need to verify the following evaluation')}}
+        <br/>
+        {{if evaluated:}}
+            <span class="label">{{=T('The content of the answers may be moderated if needed')}}</span>
+        {{pass}}
+        <br/>
+        <form id="target" onsubmit="javascript: return false;">
+            <fieldset style="text-align:left;">
+                <h2>
+                    {{=T('The form is empty')}}
+                </h2>
+            </fieldset>
+        </form>
+        {{form_error_txt=T("Evaluation form is not complete: provide all answers according to the min/max recommended size")}}
+        <form id="editForm" method="POST" >
+            {{if not evaluated:}}
+                <button class="btn btn-success" onclick="javascript:if(cf.validateData().length) {
+                                                             alert('{{=form_error_txt}}');
+                                                             return false;
+                                                         } else {
+                                                             $('#formData').val(cf.saveControls(true));
+                                                             return true;
+                                                         }">
+                        <i class="icon icon-white icon-pencil"></i>&nbsp;{{=T('Submit Evaluation')}}
+                </button>
+            {{else:}}
+                <span class="label label-warning">{{=T('Important')}}!</span>
+                {{=T('After confirmation, this evaluation will be available to Advisor and Student')}}
+                <span class="label label-warning">{{=T('Important')}}!</span><br/><br/>
+                <div class="btn-group" data-toggle="buttons">
+                    <label class="btn btn-success">
+                        <input onclick="javascript:$('#final-sub').fadeIn(1000)" type="radio" name="veredict" id="verdict" value="approved">
+                    <i class="icon icon-white icon-thumbs-up"></i> {{=T('Approve Submission')}} </label>
+                    <label class="btn btn-danger">
+                        <input onclick="javascript:$('#final-sub').fadeIn(1000)" type="radio" name="veredict" id="verdict" value="reproved">
+                    <i class="icon icon-white icon-thumbs-down"></i> {{=T('Reprove Submission')}} </label>
+                </div>
+                <br/><br/>
+                <button class="btn btn-primary" id="final-sub" style="display:none" onclick="javascript:if(cf.validateData().length) {
+                                                             alert('{{=form_error_txt}}');
+                                                             return false;
+                                                         } else {
+                                                             $('#formData').val(cf.saveControls(true));
+                                                             return true;
+                                                         }">
+                        <i class="icon icon-white icon-ok"></i>&nbsp;{{=T('Confirm Evaluation')}}
+                </button>
+            {{pass}}
+            <input type="hidden" name="formData" id="formData" value=""/>
+        </form>
+
+        <script>
+            {{form_data = report.submission.review_form if report.submission.review_form else report.submission.document_type.review_form}}
+            var cf=new CustomFormJS('target', '{{=T("The form is empty")}}', '{{=T("Yes")}}', '{{=T("No")}}', false);
+            cf.load('{{=XML(replace(form_data,"\\","\\\\")) if form_data else ""}}');
+            window.setTimeout("$('.flash').fadeOut('5000');", 2000);
+        </script>
+
+    </div>
+</center>
+<br/>

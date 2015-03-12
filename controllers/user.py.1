@@ -1,0 +1,48 @@
+# coding: utf8
+# try something like
+def index(): return dict(message="hello from user.py")
+import datetime
+import calendar
+
+def add_months(sourcedate,months):
+    month = sourcedate.month - 1 + months
+    year = sourcedate.year + month / 12
+    month = month % 12 + 1
+    day = min(sourcedate.day,calendar.monthrange(year,month)[1])
+    return datetime.date(year,month,day)
+
+class Enrollment:
+    deadlines={};
+    def __init__(self, enrollment_id):
+        self.row = db.enrollment(enrollment_id)
+        #self.pname = self.row.program.name
+        self.doc_types = db((db.document_type.program == self.row.program) & (db.document_type.is_active == True)).select()
+    def next_report(self):
+        for rep in self.doc_types:
+            ref_date = self.row.start_date if (rep.relative_date == 'ingress') else datetime.date(datetime.date.today().year, 1, 1)
+            if not rep.recurrent:
+                self.deadlines[add_months(ref_date,rep.period)] = rep
+            else:
+                dt,i = self.row.start_date,1
+                while dt < self.row.max_date:
+                    dt,i = add_months(ref_date,i*rep.period),i+1
+                    self.deadlines[dt] = rep
+        return self.deadlines
+
+
+@auth.requires_login()
+def overview():
+    message="test message"
+    user=auth.user
+    enrollments_advisor = db((db.enrollment.advisor == auth.user.id)).select()
+    enrollments_student = db((db.enrollment.student == auth.user.id)  ).select()
+    return locals()
+
+
+@auth.requires_login()
+def reports():
+    #user=auth.user
+    #enrollments_student = [Enrollment(r.id) for r in db((db.enrollment.student == auth.user.id)).select()]
+    #name=enrollments_student[0].row.program.name
+    #programa=db.program(enrollments.program)
+    return locals()

@@ -1,0 +1,100 @@
+{{from string import replace}}
+{{response.files.append(URL(r=request,c='static',f='js/custom_forms.js'))}}
+
+{{extend 'layout.html'}}
+{{#=BEAUTIFY(response._vars)}}
+<div class="web2py_breadcrumbs">
+    <ul class="">
+        <li class="w2p_grid_breadcrumb_elem"><a href="{{=URL('manage','document_type')}}">{{=T('Document Types')}}</a><span class="divider">&gt;</span></li>
+        <li class="w2p_grid_breadcrumb_elem"><a href="{{=URL('manage','document_type')}}"><b>{{=doc_type.name}}</b></a><span class="divider">&gt;</span></li>
+        <li class="active w2p_grid_breadcrumb_elem"><a href="/HelloIQSC/manage/document_type/document_type/artifact.document_type/7"><i class="icon icon-tasks"></i> {{=T('Review Form')}}</a></li>
+    </ul>
+</div>
+<hr/>
+<form id="editForm" method="POST">
+    <a role="button" class="btn" href="{{=URL('manage', 'document_type')}}"><i class="icon icon-circle-arrow-left"></i>&nbsp;{{=T('Back')}}</a>
+    <a href="#myModal" role="button" class="btn  btn-primary" data-toggle="modal" onclick="
+           javascript:$('form#editor').children().find('input,textarea').val('')"><i class="icon icon-white icon-pencil"></i>&nbsp;{{=T('Insert Question')}}</a>
+    <a role="button" class="btn btn-danger" onclick="javascript:cf.removeControl(-1,'{{=T("Delete All Items?")}}');"><i class="icon icon-white icon-trash"></i>&nbsp;{{=T('Delete All')}}</a>
+    <button class="btn btn-success" onclick="javascript:$('#formData').val(cf.saveControls(false));"><i class="icon icon-white icon-ok"></i>&nbsp;{{=T('Save')}}</button>
+    <!-- <a href="#myModal-import" role="button" class="btn btn-primary" data-toggle="modal"><i class="icon icon-white icon-download-alt"></i>&nbsp;{{=T('Import')}}</a> -->
+    <input type="hidden" name="formData" id="formData" value=""/>
+</form>
+<!-- Modal import -->
+<div id="myModal-import" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel-import" aria-hidden="true">
+  <div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+    <h3 id="myModalLabel-import">{{=T('Import Form')}}</h3>
+  </div>
+  <div class="modal-body">
+      Import
+  </div>
+</div>
+<!-- Modal -->
+<div id="myModal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+    <h3 id="myModalLabel">{{=T('Insert Question')}}</h3>
+  </div>
+  <div class="modal-body">
+    <form id="editor" class="form-horizontal">
+        <div class="control-group">
+            <label class="control-label" for="control-type">{{=T('Question Type')}}</label>
+            <div class="controls">
+                <select name="control-type" id="control-type">
+                    <option value="textarea">{{=T('Long Text')}}</option>
+                    <option value="text">{{=T('Short Text')}}</option>
+                    <option value="yesno">{{=T('Yes/No')}}</option>
+                    <option value="scale">{{=T('Scale')}}</option>
+                </select>
+            </div>
+        </div>
+        <div class="control-group">
+            <label class="control-label" for="control-type">{{=T('Label')}}</label>
+            <div class="controls">
+                <input type="text" id="control-label" name="control-label" placeholder="{{=T('Label')}}" />
+            </div>
+        </div>
+        <div class="control-group">
+            <label class="control-label" for="control-desc">{{=T('Description')}}</label>
+            <div class="controls">
+                <textarea id="control-desc" name="control-desc" placeholder="{{=T('Description')}}"></textarea>
+            </div>
+        </div>
+        <div class="control-group">
+            <label class="control-label" for="control-min">{{=T('Range')}}</label>
+            <div class="controls">
+                <input type="text" id="control-min" style="width:100px" name="control-min" placeholder="Min" />
+                {{=T('To')}}&nbsp;
+                <input type="text" id="control-max" style="width:100px" name="control-max" placeholder="Max" />
+            </div>
+
+        </div>
+    </form>
+  </div>
+  <div class="modal-footer">
+    <button onClick="javascript:cf.addControl(
+                     $('#control-type').val(),
+                     $('#control-label').val(),
+                     $('#control-desc').val(),
+                     $('#control-min').val(),
+                     $('#control-max').val()
+                     )" class="btn btn-primary" data-dismiss="modal" type="button">{{=T('Insert')}}</button>
+  </div>
+</div>
+
+<hr/>
+<form id="target">
+    <fieldset>
+        <h2>
+            {{=T('The form is empty')}}
+        </h2>
+    </fieldset>
+</form>
+<hr />
+
+<script>
+    var cf=new CustomFormJS('target', '{{=T("The form is empty")}}', '{{=T("Yes")}}', '{{=T("No")}}', true);
+    cf.load('{{=XML(replace(doc_type.review_form,"\\","\\\\")) if doc_type.review_form else ""}}');
+    window.setTimeout("$('.flash').fadeOut('5000');", 2000);
+</script>

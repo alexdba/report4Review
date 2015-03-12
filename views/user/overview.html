@@ -1,0 +1,70 @@
+{{extend 'layout.html'}}
+<h1>{{=T('Overview')}}</h1>
+
+<style type="text/css" >
+.panel-heading a:after {
+    content: "v";
+    float: right;
+    color: grey;
+}
+.panel-heading a.collapsed:after {
+    content: ">";
+}
+</style>
+
+{{panel_count=0}}
+{{def student_panel(item):}}
+{{global panel_count}}
+{{panel_count+=1}}
+<div class="panel-group" id="accordion">
+  <div class="panel panel-default" id="panel1">
+    <div class="panel-heading">
+      <h4 class="panel-title"><li>
+        <a data-toggle="collapse" data-target="#collapse{{=panel_count}}" href="#" class="collapsed">
+          {{=item.program.name}} - {{=item.student.first_name + ' ' + item.student.last_name}}
+        </a></li>
+      </h4>
+    </div>
+    <div id="collapse{{=panel_count}}" class="panel-collapse collapse">
+      <div class="panel-body">
+        <ul>
+            <li><b>{{=(db.enrollment.work_title.label)}}:</b> {{=item.work_title or T('Undefined')}}</li>
+            <li><b>{{=(db.enrollment.start_date.label)}}:</b> {{=item.start_date or T('Undefined')}}</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+{{return}}
+
+
+{{if current.admin: }}
+    <h3>
+        {{=T('Admin View')}}
+    </h3>
+    <ul class="nav nav-pills">
+    {{for row in status_count:}}
+        <li class="active">
+            <a href="{{=URL('manage','submission',vars={'keywords': 'submission.status='+str(row.submission.status)})}}">{{=T(current.status_details[row.submission.status].data['name'])}}
+            <span class="badge badge-{{=current.status_details[row.submission.status].data['label'][6:]}}">{{=row[count_submission_id]}}</span>
+            </a>
+        </li>
+    {{pass}}
+    </ul>
+{{pass}}
+
+{{if enrollments_advisor : }}
+    <h3>{{=T('Advised Students')}}</h3>
+    {{for item in enrollments_advisor:}}
+        {{student_panel(item)}}
+    {{pass}}
+{{else:}}
+    <div class="alert alert-warning">
+        <h4>
+            <strong>{{=T('Advisor')}}:</strong>
+            {{=T('You have no students')}}
+        </h4>
+    </div>
+{{pass}}
+
+
+{{#=BEAUTIFY(response._vars)}}

@@ -1,0 +1,13 @@
+<center>
+    <div class="alert alert-info" style="width:80%; margin:auto">
+        <button type="button" class="close" data-dismiss="alert">&times;</button>
+        <strong>{{=T('Warning')}}</strong>: {{=T('This submission is waiting for your approval')}}
+        <br/><br/>
+        {{=A(I('', _class="icon icon-white icon-" + current.status_details[current.status['accepted']]['icon']) + ' ' + T("Accept"),
+            _href=URL(args=request.args, vars={'accept':response.session_id}), _class='btn btn-success')}}
+        &nbsp;
+        {{=A(I('', _class="icon icon-white icon-" + current.status_details[current.status['rejected']]['icon']) + ' ' + T("Reject"),
+            _href=URL(args=request.args, vars={'reject':response.session_id}), _class='btn btn-danger')}}
+    </div>
+</center>
+<br/>

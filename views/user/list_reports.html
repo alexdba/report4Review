@@ -1,0 +1,44 @@
+{{extend 'layout.html'}}
+{{import datetime}}
+{{import components}}
+{{if not 'err' in locals():}}
+{{status_details = current.status_details[status_id].data}}
+<h2>{{=T(' '.join(x.capitalize() for x in request.function.split('_')))}}
+</h2>
+<h3>Status: {{=T(status_details['description']).title()}}</h3>
+<div class="alert alert-info">
+    <button type="button" class="close" data-dismiss="alert">&times;</button>
+    {{=T('Listed items requires action from ')}} <strong>{{=T(status_details['who']).capitalize()}}</strong>:
+    {{=T(status_details['requires']).capitalize()}}
+</div>
+
+<table class="table table-striped table-hover">
+    <theader>
+        <th>{{=T('Submitted')}}</th>
+        <th>{{=T('Author')}}</th>
+        <th>{{=T('Document Type')}}</th>
+        <th>{{=T('Situation')}}</th>
+        <th>{{=T('Action')}}</th>
+    </theader>
+    <tbody class="">
+    {{for rep in sorted(rows, key=lambda r: r.submission.submission_date):}}
+         <tr>
+             <td><i class="icon icon-file"></i>&nbsp;{{=components.delta_or_date(rep.submission.submission_date, 10)}}</td>
+             <td>{{=rep.enrollment.student.first_name}}</td>
+             <td>{{=rep.submission.document_type.name}}</td>
+             <td>{{=current.status_details[rep.submission.status].render()}}</td>
+             <td>{{=actions['default'](rep.submission.id)}}</td>
+         </tr>
+    {{pass}}
+    </tbody>
+</table>
+
+<script>
+    $( function () {
+        $(".label-status").tooltip();
+    });
+</script>
+{{else:}}
+{{=err}}
+{{pass}}
+{{#=BEAUTIFY(request)}}

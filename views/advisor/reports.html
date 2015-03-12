@@ -1,0 +1,32 @@
+{{extend 'layout.html'}}
+{{import datetime}}
+{{import components}}
+<h2>{{=T(' '.join(x.capitalize() for x in request.function.split('_')))}}</h2>
+
+<table class="table table-striped table-hover">
+    <theader>
+        <th>{{=T('Submitted')}}</th>
+        <th>{{=T('Student')}}</th>
+        <th>{{=T('Document Type')}}</th>
+        <th>{{=T('Situation')}}</th>
+        <th>{{=T('Action')}}</th>
+    </theader>
+    <tbody class="">
+    {{for rep in sorted(rows, key=lambda r: r.submission.submission_date):}}
+         <tr>
+             <td><i class="icon icon-file"></i>&nbsp;{{=components.delta_or_date(rep.submission.submission_date, 10)}}</td>
+             <td>{{=rep.enrollment.student.first_name}}</td>
+             <td>{{=rep.submission.document_type.name}}</td>
+             <td>{{=current.status_details[rep.submission.status].render()}}</td>
+             <td>{{=actions['view'](rep.submission.id)}}</td>
+         </tr>
+    {{pass}}
+    </tbody>
+</table>
+
+<script>
+    $( function () {
+        $(".label-status").tooltip();
+    });
+</script>
+{{#=BEAUTIFY(response)}}
